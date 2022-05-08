@@ -88,6 +88,7 @@ namespace Sudoku_WPF
                     if(tb.Text != "")
                     {
                         sayac++;
+
                     }
 
                 }
