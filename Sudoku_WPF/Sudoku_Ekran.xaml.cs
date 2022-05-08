@@ -138,7 +138,7 @@ namespace Sudoku_WPF
                     for (int j = 0; j < dataTable_Sudoku.Rows.Count; j++)
                     {
                         //0 yazan ifadeler boş hücreleri temsil eder
-                        if(satir_listesi[i][j] != 0)
+                        if (satir_listesi[i][j] != 0)
                         {
                             dataTable_Sudoku.Rows[i][j] = satir_listesi[i][j];
                         }
@@ -180,7 +180,7 @@ namespace Sudoku_WPF
         /// <param name="e"></param>
         private void Tamamla_Click(object sender, RoutedEventArgs e)
         {
-            string[,] doldurulan_tablo_degerleri = new string[10,10];
+            string[,] doldurulan_tablo_degerleri = new string[9, 9];
 
             for (int i = 0; i < dataGrid_Sudoku.Items.Count; i++)
             {
@@ -188,18 +188,19 @@ namespace Sudoku_WPF
                 {
                     DataGridCell cell = Hucreyi_Getir(i, j);
                     TextBlock tb = cell.Content as TextBlock;
-                    
+
                     string hucre_icerigi_str = tb.Text;
 
-                    if(hucre_icerigi_str == "")
+                    //yanlışlıkla yazılan boşlukları sil
+                    hucre_icerigi_str = hucre_icerigi_str.Replace(" ", "");
+
+                    if (hucre_icerigi_str == "")
                     {
                         MessageBox.Show("Lütfen puzzle ı bitirdiğinize emin olun.");
                         return;
                     }
 
-                    bool var_mi = gecerli_degerler.Contains(hucre_icerigi_str);
-
-                    if (false == var_mi)
+                    if (false == gecerli_degerler.Contains(hucre_icerigi_str))
                     {
                         MessageBox.Show("Lütfen geçersiz değer girmediğinize emin olun. (1-9 a kadar sayı girilmeli)");
                         return;
@@ -211,7 +212,7 @@ namespace Sudoku_WPF
             bool cozum_dogru_mu = Puzzle_Dogrulugunu_Kontrol_Et(doldurulan_tablo_degerleri);
 
             //çözüm kontrol edilecek.
-            if(true == cozum_dogru_mu)
+            if (true == cozum_dogru_mu)
             {
                 MessageBox.Show("Tebrikler!");
             }
@@ -224,8 +225,51 @@ namespace Sudoku_WPF
 
         private bool Puzzle_Dogrulugunu_Kontrol_Et(string[,] doldurulan_tablo_degerleri)
         {
-
+            //satır
+            for (int i = 0; i < doldurulan_tablo_degerleri.GetLength(0)-1; i++)
+            {
+                //sütun
+                for (int j = 0; j < doldurulan_tablo_degerleri.GetLength(1)-1; j++)
+                {
+                    if (true == Satirda_Ayni_Deger_Var_Mi(doldurulan_tablo_degerleri, i, j+1))
+                    {
+                        return false;
+                    }
+                    if (true == Sutunda_Ayni_Deger_Var_Mi(doldurulan_tablo_degerleri, i, j+1))
+                    {
+                        return false;
+                    }
+                }
+            }
+            //çözüm doğru
             return true;
+        }
+
+        private bool Satirda_Ayni_Deger_Var_Mi(string[,] doldurulan_tablo_degerleri, int satir, int sutun)
+        {
+            string kontrol_edilecek_deger = doldurulan_tablo_degerleri[satir, sutun];
+            for (int j = 0; j < 9; j++)
+            {
+                if(kontrol_edilecek_deger == doldurulan_tablo_degerleri[satir,j] && j != sutun)
+                {
+                    return true;
+                }
+
+            }
+            return false;
+        }
+
+        private bool Sutunda_Ayni_Deger_Var_Mi(string[,] doldurulan_tablo_degerleri, int satir, int sutun)
+        {
+            string kontrol_edilecek_deger = doldurulan_tablo_degerleri[satir, sutun];
+            for (int i = 0; i < 9; i++)
+            {
+                if(kontrol_edilecek_deger == doldurulan_tablo_degerleri[i, sutun] && i != satir)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private DataGridCell Hucreyi_Getir(int satir, int sutun)
