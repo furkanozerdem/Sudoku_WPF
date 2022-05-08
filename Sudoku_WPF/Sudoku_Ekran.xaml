@@ -5,11 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Sudoku_WPF"
         mc:Ignorable="d"
+        Loaded="Window_Loaded"
         ResizeMode="NoResize"
         Title="MainWindow" Height="750" Width="750">
 
 
-    <Grid >
+    <StackPanel  VerticalAlignment="Center" >
+ 
         <!--
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -41,9 +43,9 @@
 -->
 
 
-        <DataGrid Width="500" Height="500" HorizontalAlignment="Center" VerticalAlignment="Center" CanUserResizeColumns="False" CanUserResizeRows="False" x:Name="dataGrid_Sudoku" HeadersVisibility="None"/>
-        <Button Content="Tamamla" HorizontalAlignment="Left" Click="Tamamla_Click" Margin="329,655,0,0" VerticalAlignment="Top" Width="75"/>
+        <DataGrid Grid.Column="0" CanUserAddRows="False"  HorizontalAlignment="Center"  x:Name="dataGrid_Sudoku" HeadersVisibility="None"/>
 
+        <Button Width="250" Height="50" Grid.Column="1" Click="Tamamla_Click" Content="Tamamla"/>
 
-    </Grid>
+    </StackPanel>
 </Window>

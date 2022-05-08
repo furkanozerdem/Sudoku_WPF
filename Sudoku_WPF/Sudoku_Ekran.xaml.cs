@@ -25,7 +25,7 @@ namespace Sudoku_WPF
     /// </summary>
     public partial class MainWindow : Window
     {
- 
+
         DataTable dataTable_Sudoku = new DataTable();
 
         public MainWindow()
@@ -52,16 +52,37 @@ namespace Sudoku_WPF
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
 
             dataGrid_Sudoku.ItemsSource = dataTable_Sudoku.DefaultView;
 
-            Deger_Ekle();
-
-            // Degerler[0, 0] = 12;
         }
 
-        private void Deger_Ekle()
+
+        private void Tabloyu_Hazirla()
+        {
+            //içeriği yatayda hizala
+            var cellStyle = new Style(typeof(DataGridCell)) { Setters = { new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center) } };
+            dataGrid_Sudoku.CellStyle = cellStyle;
+
+            //hücre boyutlarını hizala ve yazı boyutu ata
+            for (int i = 0; i < dataGrid_Sudoku.Items.Count ; i++)
+            {
+                for (int j = 0; j < dataGrid_Sudoku.Columns.Count; j++)
+                {
+                    DataGridCell cell = Hucreyi_Getir(i, j);
+                    TextBlock tb = cell.Content as TextBlock;
+
+                    cell.Width = 40;
+                    cell.Height = 40;
+
+                    cell.FontSize = 20;
+
+                }
+            }
+        }
+
+        private void Puzzle_Olustur()
         {
             dataTable_Sudoku.Rows[0][0] = 2;
             dataTable_Sudoku.Rows[0][1] = 1;
@@ -69,23 +90,22 @@ namespace Sudoku_WPF
             dataTable_Sudoku.Rows[0][3] = 4;
             dataTable_Sudoku.Rows[0][4] = 5;
 
-            dataGrid_Sudoku.ItemsSource = null;
-            dataGrid_Sudoku.ItemsSource = dataTable_Sudoku.DefaultView;
 
         }
 
         private void Tamamla_Click(object sender, RoutedEventArgs e)
         {
+     
             int sayac = 0;
 
-            for (int i = 0; i < dataGrid_Sudoku.Items.Count - 1; i++)
+            for (int i = 0; i < dataGrid_Sudoku.Items.Count ; i++)
             {
                 for (int j = 0; j < dataGrid_Sudoku.Columns.Count; j++)
                 {
                     DataGridCell cell = Hucreyi_Getir(i, j);
                     TextBlock tb = cell.Content as TextBlock;
                     
-                    if(tb.Text != "")
+                    if (tb.Text != "")
                     {
                         sayac++;
 
@@ -143,6 +163,14 @@ namespace Sudoku_WPF
                 }
             }
             return child;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Tabloyu_Hazirla();
+
+            Puzzle_Olustur();
+
         }
     }
 }
