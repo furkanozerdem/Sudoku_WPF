@@ -12,6 +12,8 @@
 
     <StackPanel  VerticalAlignment="Center" >
 
+        <TextBlock  x:Name="puzzle_id_bilgi" HorizontalAlignment="Center" />
+
         <DataGrid CanUserAddRows="False"  HorizontalAlignment="Center"  x:Name="dataGrid_Sudoku" HeadersVisibility="None"/>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

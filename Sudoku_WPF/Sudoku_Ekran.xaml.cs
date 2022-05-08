@@ -19,6 +19,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.IO;
+
+
 
 namespace Sudoku_WPF
 {
@@ -29,6 +32,17 @@ namespace Sudoku_WPF
     {
 
         DataTable dataTable_Sudoku = new DataTable();
+        bool puzzle_olusturuldu_mu = false;
+        int son_cozulen_puzzle_id = 0;
+
+        /// <summary>
+        /// Sudoku tablosunda bu değerler dışında değer varsa tamamlanmayacak.
+        /// </summary>
+        List<string> gecerli_degerler = new List<string>()
+        {
+            "1","2","3","4","5","6","7","8","9"
+        };
+
 
         public MainWindow()
         {
@@ -53,8 +67,10 @@ namespace Sudoku_WPF
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
             dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
-       
+
             dataGrid_Sudoku.ItemsSource = dataTable_Sudoku.DefaultView;
+
+            puzzle_id_bilgi.Visibility = Visibility.Collapsed;
 
         }
 
@@ -65,7 +81,7 @@ namespace Sudoku_WPF
             dataGrid_Sudoku.CellStyle = cellStyle;
 
             //hücre boyutlarını hizala ve yazı boyutu ata
-            for (int i = 0; i < dataGrid_Sudoku.Items.Count ; i++)
+            for (int i = 0; i < dataGrid_Sudoku.Items.Count; i++)
             {
                 for (int j = 0; j < dataGrid_Sudoku.Columns.Count; j++)
                 {
@@ -86,16 +102,75 @@ namespace Sudoku_WPF
         /// </summary>
         private void Puzzle_Olustur()
         {
-            dataTable_Sudoku.Rows[0][0] = 2;
-            dataTable_Sudoku.Rows[0][1] = 1;
-            dataTable_Sudoku.Rows[0][2] = 3;
-            dataTable_Sudoku.Rows[0][3] = 4;
-            dataTable_Sudoku.Rows[0][4] = 5;
 
+            string puzzle_json_icerigi = Puzzle_Dosyasini_Oku();
 
+            //dosyada veri yok
+            if (puzzle_json_icerigi == "")
+            {
+                MessageBox.Show("Puzzle listesi boş. Lütfen listeyi doldurun.");
+                puzzle_olusturuldu_mu = false;
+                return;
+            }
 
+            //dosyada veriler mevcut
+            else
+            {
 
+                List<Model_Puzzle> puzzle_listesi = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Model_Puzzle>>(puzzle_json_icerigi);
 
+                Model_Puzzle goruntulenecek_puzzle = puzzle_listesi[son_cozulen_puzzle_id];
+
+                List<List<int>> satir_listesi = new List<List<int>>();
+
+                satir_listesi.Add(goruntulenecek_puzzle.satir_1);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_2);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_3);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_4);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_5);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_6);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_7);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_8);
+                satir_listesi.Add(goruntulenecek_puzzle.satir_9);
+
+                for (int i = 0; i < dataTable_Sudoku.Columns.Count; i++)
+                {
+                    for (int j = 0; j < dataTable_Sudoku.Rows.Count; j++)
+                    {
+                        //0 yazan ifadeler boş hücreleri temsil eder
+                        if(satir_listesi[i][j] != 0)
+                        {
+                            dataTable_Sudoku.Rows[i][j] = satir_listesi[i][j];
+                        }
+                    }
+                }
+
+                puzzle_id_bilgi.Visibility = Visibility.Visible;
+                puzzle_id_bilgi.Text = "Çözülen Puzzle Numarası : " + son_cozulen_puzzle_id;
+
+                son_cozulen_puzzle_id++;
+                puzzle_olusturuldu_mu = true;
+            }
+        }
+
+        /// <summary>
+        /// Proje dizininde bulunan json dosyasını okur, bu dosya puzzle listesini içerir.
+        /// </summary>
+        /// <returns></returns>
+        public string Puzzle_Dosyasini_Oku()
+        {
+            string workingDirectory = Environment.CurrentDirectory;
+            string proje_yolu = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
+
+            string yol = proje_yolu + @"\Puzzle_Listesi.json";
+
+            if (System.IO.File.Exists(yol))
+            {
+                string all_text = System.IO.File.ReadAllText(yol);
+                return all_text;
+            }
+
+            return "";
         }
 
         /// <summary>
@@ -105,25 +180,52 @@ namespace Sudoku_WPF
         /// <param name="e"></param>
         private void Tamamla_Click(object sender, RoutedEventArgs e)
         {
-     
-            int sayac = 0;
+            string[,] doldurulan_tablo_degerleri = new string[10,10];
 
-            for (int i = 0; i < dataGrid_Sudoku.Items.Count ; i++)
+            for (int i = 0; i < dataGrid_Sudoku.Items.Count; i++)
             {
                 for (int j = 0; j < dataGrid_Sudoku.Columns.Count; j++)
                 {
                     DataGridCell cell = Hucreyi_Getir(i, j);
                     TextBlock tb = cell.Content as TextBlock;
                     
-                    if (tb.Text != "")
-                    {
-                        sayac++;
+                    string hucre_icerigi_str = tb.Text;
 
+                    if(hucre_icerigi_str == "")
+                    {
+                        MessageBox.Show("Lütfen puzzle ı bitirdiğinize emin olun.");
+                        return;
                     }
 
+                    bool var_mi = gecerli_degerler.Contains(hucre_icerigi_str);
+
+                    if (false == var_mi)
+                    {
+                        MessageBox.Show("Lütfen geçersiz değer girmediğinize emin olun. (1-9 a kadar sayı girilmeli)");
+                        return;
+                    }
+                    doldurulan_tablo_degerleri[i, j] = hucre_icerigi_str;
                 }
             }
-            MessageBox.Show(sayac.ToString());
+
+            bool cozum_dogru_mu = Puzzle_Dogrulugunu_Kontrol_Et(doldurulan_tablo_degerleri);
+
+            //çözüm kontrol edilecek.
+            if(true == cozum_dogru_mu)
+            {
+                MessageBox.Show("Tebrikler!");
+            }
+            else
+            {
+                MessageBox.Show("Çözüm yanlış. Lütfen devam ediniz.");
+            }
+
+        }
+
+        private bool Puzzle_Dogrulugunu_Kontrol_Et(string[,] doldurulan_tablo_degerleri)
+        {
+
+            return true;
         }
 
         private DataGridCell Hucreyi_Getir(int satir, int sutun)
@@ -193,14 +295,16 @@ namespace Sudoku_WPF
         {
             Puzzle_Olustur();
 
-            Sayac_Baslat();
+            if (true == puzzle_olusturuldu_mu)
+            {
+                Sayac_Baslat();
 
-            //Butonu pasifize et
-            Basla.IsEnabled = false;
+                //Butonu pasifize et
+                Basla.IsEnabled = false;
 
-            //Tamamlama butonunu aktif et
-            Tamamla.IsEnabled = true;
-
+                //Tamamlama butonunu aktif et
+                Tamamla.IsEnabled = true;
+            }
         }
 
         private void Sayac_Baslat()
@@ -210,7 +314,7 @@ namespace Sudoku_WPF
             //Başlama zamanı
             DateTime currentTime = DateTime.Now;
             dispatcherTimer.Tick += (sender, e) => { dispatcherTimer_Tick(sender, e, currentTime); };
-            
+
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
         }
