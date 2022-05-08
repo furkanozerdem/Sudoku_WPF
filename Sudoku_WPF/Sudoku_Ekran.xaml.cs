@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -17,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Sudoku_WPF
 {
@@ -41,23 +43,20 @@ namespace Sudoku_WPF
             dataTable_Sudoku.Columns.Add("6");
             dataTable_Sudoku.Columns.Add("7");
             dataTable_Sudoku.Columns.Add("8");
-            dataTable_Sudoku.Columns.Add("9");
 
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "", "");
-
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+            dataTable_Sudoku.Rows.Add("", "", "", "", "", "", "", "", "");
+       
             dataGrid_Sudoku.ItemsSource = dataTable_Sudoku.DefaultView;
 
         }
-
 
         private void Tabloyu_Hazirla()
         {
@@ -82,6 +81,9 @@ namespace Sudoku_WPF
             }
         }
 
+        /// <summary>
+        /// Verilerin tabloya aktarılacağı fonksyion
+        /// </summary>
         private void Puzzle_Olustur()
         {
             dataTable_Sudoku.Rows[0][0] = 2;
@@ -91,8 +93,16 @@ namespace Sudoku_WPF
             dataTable_Sudoku.Rows[0][4] = 5;
 
 
+
+
+
         }
 
+        /// <summary>
+        /// Oyunu bitirecek fonksiyon
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Tamamla_Click(object sender, RoutedEventArgs e)
         {
      
@@ -169,8 +179,49 @@ namespace Sudoku_WPF
         {
             Tabloyu_Hazirla();
 
+            Basla.IsEnabled = true;
+
+            Tamamla.IsEnabled = false;
+        }
+
+        /// <summary>
+        /// Oyunu başlatacak fonksiyon
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Basla_Click(object sender, RoutedEventArgs e)
+        {
             Puzzle_Olustur();
 
+            Sayac_Baslat();
+
+            //Butonu pasifize et
+            Basla.IsEnabled = false;
+
+            //Tamamlama butonunu aktif et
+            Tamamla.IsEnabled = true;
+
+        }
+
+        private void Sayac_Baslat()
+        {
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+
+            //Başlama zamanı
+            DateTime currentTime = DateTime.Now;
+            dispatcherTimer.Tick += (sender, e) => { dispatcherTimer_Tick(sender, e, currentTime); };
+            
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
+        }
+
+        private void dispatcherTimer_Tick(object sender, EventArgs e, DateTime baslama_zamani)
+        {
+            DateTime anlik_zaman = DateTime.Now;
+
+            string saniye = (anlik_zaman - baslama_zamani).TotalSeconds.ToString("F0");
+
+            TextBlock_Timer.Text = "Geçen Süre (sn) : " + saniye;
         }
     }
 }
